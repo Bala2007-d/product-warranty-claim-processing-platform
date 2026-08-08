@@ -6,14 +6,17 @@ from app.schemas.claim_schema import ClaimCreate, ClaimStatusUpdate
 from app.services.claim_service import (
     create_claim,
     get_claims,
-    update_claim_status
+    update_claim_status,
+    delete_claim
 )
+
 
 router = APIRouter()
 
 
 def get_db():
     db = SessionLocal()
+
     try:
         yield db
     finally:
@@ -21,7 +24,10 @@ def get_db():
 
 
 @router.post("/claims")
-def add_claim(claim: ClaimCreate, db: Session = Depends(get_db)):
+def add_claim(
+    claim: ClaimCreate,
+    db: Session = Depends(get_db)
+):
     return create_claim(
         db,
         claim.customer_name,
@@ -42,12 +48,36 @@ def update_status(
     data: ClaimStatusUpdate,
     db: Session = Depends(get_db)
 ):
-    claim = update_claim_status(db, claim_id, data.status)
+    claim = update_claim_status(
+        db,
+        claim_id,
+        data.status
+    )
 
-    if claim is None:
-        return {"message": "Claim not found"}
+    if not claim:
+        return {
+            "message": "Claim not found"
+        }
 
     return {
         "message": "Status Updated Successfully",
         "claim": claim
+    }
+
+
+@router.delete("/claims/{claim_id}")
+def remove_claim(
+    claim_id: int,
+    db: Session = Depends(get_db)
+):
+    claim = delete_claim(db, claim_id)
+
+    if not claim:
+        return {
+            "message": "Claim not found"
+        }
+
+    return {
+        "message": "Claim Deleted Successfully",
+        "claim_id": claim_id
     }
