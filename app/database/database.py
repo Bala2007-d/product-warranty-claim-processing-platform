@@ -1,7 +1,7 @@
 from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker, declarative_base
+from sqlalchemy.orm import sessionmaker
 
-DATABASE_URL = "mysql+pymysql://root:YOUR_PASSWORD@localhost/product_warranty_db"
+DATABASE_URL = "mysql+pymysql://root:Root%40123@localhost/product_warranty_db"
 
 engine = create_engine(DATABASE_URL)
 
@@ -10,8 +10,6 @@ SessionLocal = sessionmaker(
     autoflush=False,
     bind=engine
 )
-
-Base = declarative_base()
 
 
 def get_db():
