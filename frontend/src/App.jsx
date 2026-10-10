@@ -6,6 +6,7 @@ const API = "/api";
 
 export default function App() {
   const [page, setPage] = useState("login");
+  const [loginMode, setLoginMode] = useState("customer");
   const [user, setUser] = useState(null);
   const [token, setToken] = useState("");
   const [products, setProducts] = useState([]);
@@ -93,6 +94,17 @@ export default function App() {
         false
       );
 
+      if (
+        (loginMode === "admin" && data.user.role !== "Admin") ||
+        (loginMode === "customer" && data.user.role === "Admin")
+      ) {
+        throw new Error(
+          loginMode === "admin"
+            ? "This account does not have administrator access."
+            : "Please use the administrator sign-in."
+        );
+      }
+
       setToken(data.access_token);
       setUser(data.user);
       setPage("dashboard");
@@ -115,6 +127,7 @@ export default function App() {
 
       setMessage("Registration successful. Please login.");
       setPage("login");
+      setLoginMode("customer");
       setRegister({
         full_name: "",
         email: "",
@@ -219,183 +232,318 @@ export default function App() {
     setClaims([]);
     setMessage("");
     setPage("login");
+    setLoginMode("customer");
   }
+
+  const isAdmin = user?.role === "Admin";
 
   if (!user) {
     return (
-      <div className="app">
-        <div className="card">
-          <h1>Product Warranty</h1>
-          <p className="subtitle">Warranty Claim Processing Platform</p>
-
-          {message && <p className="message">{message}</p>}
-
-          {page === "register" ? (
-            <>
-              <h2>Create Account</h2>
-              <form onSubmit={handleRegister}>
-                <label>Full Name</label>
-                <input
-                  required
-                  value={register.full_name}
-                  onChange={(e) =>
-                    setRegister({ ...register, full_name: e.target.value })
-                  }
-                  placeholder="Full name"
-                />
-
-                <label>Email</label>
-                <input
-                  required
-                  type="email"
-                  value={register.email}
-                  onChange={(e) =>
-                    setRegister({ ...register, email: e.target.value })
-                  }
-                  placeholder="Email"
-                />
-
-                <label>Password</label>
-                <input
-                  required
-                  type="password"
-                  value={register.password}
-                  onChange={(e) =>
-                    setRegister({ ...register, password: e.target.value })
-                  }
-                  placeholder="Password"
-                />
-
-                <label>Phone</label>
-                <input
-                  value={register.phone}
-                  onChange={(e) =>
-                    setRegister({ ...register, phone: e.target.value })
-                  }
-                  placeholder="Phone number"
-                />
-
-                <button type="submit">Register</button>
-              </form>
-
-              <p>
-                Already registered?{" "}
-                <button className="link" onClick={() => setPage("login")}>
-                  Login
-                </button>
-              </p>
-            </>
-          ) : (
-            <>
-              <h2>Login</h2>
-              <form onSubmit={handleLogin}>
-                <label>Email</label>
-                <input
-                  required
-                  type="email"
-                  value={login.email}
-                  onChange={(e) =>
-                    setLogin({ ...login, email: e.target.value })
-                  }
-                  placeholder="Email"
-                />
-
-                <label>Password</label>
-                <input
-                  required
-                  type="password"
-                  value={login.password}
-                  onChange={(e) =>
-                    setLogin({ ...login, password: e.target.value })
-                  }
-                  placeholder="Password"
-                />
-
-                <button type="submit">Login</button>
-              </form>
-
-              <p>
-                New user?{" "}
-                <button className="link" onClick={() => setPage("register")}>
-                  Register
-                </button>
-              </p>
-            </>
-          )}
+      <div className={`auth-page ${loginMode === "admin" ? "auth-admin" : ""}`}>
+        <div className="auth-shell">
+          <section className="auth-panel">
+            <div className="auth-form-wrap">
+              <div className="auth-brand">
+                <span className="brand-mark">P</span>
+                <span>Product Warranty</span>
+              </div>
+              {page === "register" ? (
+                <>
+                  <div className="form-heading">
+                    <span className="eyebrow">GET STARTED</span>
+                    <h2>Create your account</h2>
+                    <p>Register to manage your products and warranty claims.</p>
+                  </div>
+                  {message && <p className="message" role="status">{message}</p>}
+                  <form className="auth-form" onSubmit={handleRegister}>
+                    <label htmlFor="register-name">Full name</label>
+                    <input
+                      id="register-name"
+                      autoComplete="name"
+                      required
+                      value={register.full_name}
+                      onChange={(e) =>
+                        setRegister({ ...register, full_name: e.target.value })
+                      }
+                      placeholder="Your full name"
+                    />
+                    <label htmlFor="register-email">Email address</label>
+                    <input
+                      id="register-email"
+                      autoComplete="email"
+                      required
+                      type="email"
+                      value={register.email}
+                      onChange={(e) =>
+                        setRegister({ ...register, email: e.target.value })
+                      }
+                      placeholder="you@example.com"
+                    />
+                    <label htmlFor="register-password">Password</label>
+                    <input
+                      id="register-password"
+                      autoComplete="new-password"
+                      required
+                      type="password"
+                      value={register.password}
+                      onChange={(e) =>
+                        setRegister({ ...register, password: e.target.value })
+                      }
+                      placeholder="Create a password"
+                    />
+                    <label htmlFor="register-phone">Phone <span className="optional-label">Optional</span></label>
+                    <input
+                      id="register-phone"
+                      autoComplete="tel"
+                      value={register.phone}
+                      onChange={(e) =>
+                        setRegister({ ...register, phone: e.target.value })
+                      }
+                      placeholder="Your phone number"
+                    />
+                    <button className="primary-button" type="submit">
+                      Create account <span aria-hidden="true">→</span>
+                    </button>
+                  </form>
+                  <p className="auth-switch">
+                    Already have an account?{" "}
+                    <button className="text-button" onClick={() => setPage("login")}>
+                      Sign in
+                    </button>
+                  </p>
+                </>
+              ) : (
+                <>
+                  <div className="form-heading">
+                    <span className="eyebrow">
+                      {loginMode === "admin" ? "ADMIN CONSOLE" : "WELCOME BACK"}
+                    </span>
+                    <h2>
+                      {loginMode === "admin" ? "Administrator sign in" : "Sign in to your account"}
+                    </h2>
+                    <p>
+                      {loginMode === "admin"
+                        ? "Access claim reviews and platform management."
+                        : "Enter your details to continue to your workspace."}
+                    </p>
+                  </div>
+                  <div className="login-mode-switch" aria-label="Choose sign-in portal">
+                    <button
+                      className={loginMode === "customer" ? "selected" : ""}
+                      type="button"
+                      onClick={() => {
+                        setLoginMode("customer");
+                        setMessage("");
+                      }}
+                    >
+                      Customer
+                    </button>
+                    <button
+                      className={loginMode === "admin" ? "selected" : ""}
+                      type="button"
+                      onClick={() => {
+                        setLoginMode("admin");
+                        setMessage("");
+                      }}
+                    >
+                      Admin
+                    </button>
+                  </div>
+                  {message && <p className="message" role="alert">{message}</p>}
+                  <form className="auth-form" onSubmit={handleLogin}>
+                    <label htmlFor="login-email">Email address</label>
+                    <input
+                      id="login-email"
+                      autoComplete="email"
+                      required
+                      type="email"
+                      value={login.email}
+                      onChange={(e) =>
+                        setLogin({ ...login, email: e.target.value })
+                      }
+                      placeholder="you@example.com"
+                    />
+                    <label htmlFor="login-password">Password</label>
+                    <input
+                      id="login-password"
+                      autoComplete="current-password"
+                      required
+                      type="password"
+                      value={login.password}
+                      onChange={(e) =>
+                        setLogin({ ...login, password: e.target.value })
+                      }
+                      placeholder="Enter your password"
+                    />
+                    <button className="primary-button" type="submit">
+                      {loginMode === "admin" ? "Open admin console" : "Sign in"}
+                      <span aria-hidden="true">→</span>
+                    </button>
+                  </form>
+                  {loginMode === "customer" ? (
+                    <p className="auth-switch">
+                      New user?{" "}
+                      <button className="text-button" onClick={() => setPage("register")}>
+                        Create an account
+                      </button>
+                    </p>
+                  ) : (
+                    <p className="secure-note"><span aria-hidden="true">♢</span> Secure access for authorized administrators</p>
+                  )}
+                </>
+              )}
+              <p className="auth-legal">Product Warranty Claim Processing Platform</p>
+            </div>
+          </section>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="app">
-      <div className="card dashboard">
-        <h1>Product Warranty</h1>
-        <p className="subtitle">Warranty Claim Processing Platform</p>
-        <p>Welcome, {user.full_name}</p>
-
-        <nav>
-          <button onClick={() => setPage("dashboard")}>Dashboard</button>
+    <div className={`workspace ${isAdmin ? "admin-workspace" : "customer-workspace"}`}>
+      <aside className="sidebar">
+        <a className="workspace-brand" href="#" onClick={(e) => { e.preventDefault(); setPage("dashboard"); }}>
+          Product Warranty
+        </a>
+        <div className="sidebar-section-label">{isAdmin ? "ADMINISTRATION" : "WORKSPACE"}</div>
+        <nav className="workspace-nav" aria-label="Main navigation">
+          <button className={page === "dashboard" ? "active" : ""} onClick={() => setPage("dashboard")}>
+            <span className="nav-icon">⌂</span> Overview
+          </button>
           <button
+            className={page === "products" ? "active" : ""}
             onClick={() => {
               setPage("products");
               loadProducts();
             }}
           >
-            Products
+            <span className="nav-icon">▦</span> {isAdmin ? "All products" : "My products"}
           </button>
-          <button onClick={() => setPage("addProduct")}>Add Product</button>
+          {!isAdmin && (
+            <button className={page === "addProduct" ? "active" : ""} onClick={() => setPage("addProduct")}>
+              <span className="nav-icon">＋</span> Add a product
+            </button>
+          )}
           <button
+            className={page === "claims" ? "active" : ""}
             onClick={() => {
               setPage("claims");
               loadClaims();
             }}
           >
-            Claims
+            <span className="nav-icon">▤</span> {isAdmin ? "Claim reviews" : "My claims"}
           </button>
-          <button onClick={() => setPage("addClaim")}>Add Claim</button>
+          {!isAdmin && (
+            <button className={page === "addClaim" ? "active" : ""} onClick={() => setPage("addClaim")}>
+              <span className="nav-icon">＋</span> Submit a claim
+            </button>
+          )}
         </nav>
+        <div className="sidebar-bottom">
+          <div className="help-card">
+            <span className="help-spark">✦</span>
+            <strong>{isAdmin ? "Admin workspace" : "Need a hand?"}</strong>
+            <p>{isAdmin ? "Review and manage warranty activity." : "Your warranty details are always close by."}</p>
+          </div>
+          <div className="profile-card">
+            <div className="avatar">{user.full_name?.charAt(0)?.toUpperCase() || "U"}</div>
+            <div className="profile-copy">
+              <strong>{user.full_name}</strong>
+              <span>{isAdmin ? "Administrator" : "Customer"}</span>
+            </div>
+          </div>
+        </div>
+      </aside>
 
-        {message && <p className="message">{message}</p>}
+      <main className="main-content">
+        <header className="workspace-topbar">
+          <div>
+            <span className="topbar-kicker">{isAdmin ? "ADMIN CONSOLE" : "YOUR ACCOUNT"}</span>
+            <p>{isAdmin ? "Admin dashboard" : "Customer dashboard"}</p>
+          </div>
+          <div className="topbar-actions">
+            <div className={`role-pill ${isAdmin ? "admin-role-pill" : ""}`}>
+              <span /> {isAdmin ? "Admin portal" : "Customer portal"}
+            </div>
+            <button className="logout-button" onClick={logout}>Logout</button>
+          </div>
+        </header>
+        <div className="page-content">
+          {message && <p className="message workspace-message" role="status">{message}</p>}
 
         {page === "dashboard" && (
-          <section>
-            <h2>Dashboard</h2>
-            <div className="stats">
-              <div className="stat">
-                <h3>{products.length}</h3>
-                <p>Products</p>
+          <section className="page-section">
+            <div className="page-title-row">
+              <div>
+                <h1>{isAdmin ? "Admin dashboard" : `Welcome, ${user.full_name.split(" ")[0]}`}</h1>
+                <p>{isAdmin ? "View products and manage warranty claims." : "View your products and warranty claims."}</p>
               </div>
-              <div className="stat">
-                <h3>{claims.length}</h3>
-                <p>Warranty Claims</p>
-              </div>
+              {!isAdmin && (
+                <button className="primary-button compact-button" onClick={() => setPage("addClaim")}>
+                  Submit a claim <span aria-hidden="true">→</span>
+                </button>
+              )}
             </div>
-            <p>Manage your registered products and warranty claims here.</p>
+            <div className="stats">
+              <div className="stat stat-purple">
+                <span className="stat-icon">▦</span>
+                <div><strong>{products.length}</strong><p>{isAdmin ? "Registered products" : "My products"}</p></div>
+              </div>
+              <div className="stat stat-blue">
+                <span className="stat-icon">▤</span>
+                <div><strong>{claims.length}</strong><p>{isAdmin ? "Total claims" : "Warranty claims"}</p></div>
+              </div>
+              {isAdmin && (
+                <div className="stat stat-amber">
+                  <span className="stat-icon">◷</span>
+                  <div><strong>{claims.filter((item) => item.status === "Pending").length}</strong><p>Awaiting review</p></div>
+                </div>
+              )}
+            </div>
+            {isAdmin ? (
+              <div className="welcome-card">
+                <div>
+                  <h2>Claims to review</h2>
+                  <p>Open the claims page to view submissions and update their status.</p>
+                </div>
+                <button className="secondary-button" onClick={() => { setPage("claims"); loadClaims(); }}>
+                  Review claims <span aria-hidden="true">→</span>
+                </button>
+              </div>
+            ) : (
+              <div className="welcome-card customer-welcome">
+                <div>
+                  <h2>Manage your warranties</h2>
+                  <p>Add a product or submit a warranty claim using the menu.</p>
+                </div>
+              </div>
+            )}
           </section>
         )}
 
         {page === "products" && (
-          <section>
-            <h2>My Products</h2>
+          <section className="page-section">
+            <div className="page-title-row">
+              <div>
+                <h1>{isAdmin ? "All products" : "My products"}</h1>
+                <p>{isAdmin ? "Products registered across the platform." : "Products registered to your account."}</p>
+              </div>
+            </div>
 
             {products.length === 0 ? (
-              <p>No products found. Add your first product.</p>
+              <div className="empty-state"><h2>No products found</h2><p>{isAdmin ? "There are no registered products." : "Add a product to get started."}</p></div>
             ) : (
               <div className="list">
                 {products.map((item) => (
                   <article className="item" key={item.product_id}>
-                    <h3>{item.product_name}</h3>
-                    <p><b>Brand:</b> {item.brand}</p>
-                    <p><b>Model:</b> {item.model || "-"}</p>
-                    <p><b>Serial Number:</b> {item.serial_number || "-"}</p>
-                    <p><b>Purchase Date:</b> {item.purchase_date || "-"}</p>
-                    <p>
-                      <b>Warranty:</b> {item.warranty_period} months
-                    </p>
-                    <p>
-                      <b>Warranty End:</b> {item.warranty_end_date || "-"}
-                    </p>
+                    <div className="item-heading"><span className="item-icon">▦</span><div><h3>{item.product_name}</h3><span>{item.brand}{item.model ? ` · ${item.model}` : ""}</span></div></div>
+                    <div className="item-details">
+                      <p><b>Serial number</b><span>{item.serial_number || "—"}</span></p>
+                      <p><b>Purchase date</b><span>{item.purchase_date || "—"}</span></p>
+                      <p><b>Warranty period</b><span>{item.warranty_period} months</span></p>
+                      <p><b>Warranty ends</b><span>{item.warranty_end_date || "—"}</span></p>
+                    </div>
                   </article>
                 ))}
               </div>
@@ -404,11 +552,14 @@ export default function App() {
         )}
 
         {page === "addProduct" && (
-          <section>
-            <h2>Add Product</h2>
+          <section className="page-section form-page">
+            <div className="page-title-row">
+              <div><h1>Add a product</h1><p>Enter the product and warranty details.</p></div>
+            </div>
             <form onSubmit={handleAddProduct}>
-              <label>Product Name</label>
+              <label htmlFor="product-name">Product name</label>
               <input
+                id="product-name"
                 required
                 value={product.product_name}
                 onChange={(e) =>
@@ -416,8 +567,9 @@ export default function App() {
                 }
               />
 
-              <label>Brand</label>
+              <label htmlFor="product-brand">Brand</label>
               <input
+                id="product-brand"
                 required
                 value={product.brand}
                 onChange={(e) =>
@@ -425,16 +577,18 @@ export default function App() {
                 }
               />
 
-              <label>Model</label>
+              <label htmlFor="product-model">Model <span className="optional-label">Optional</span></label>
               <input
+                id="product-model"
                 value={product.model}
                 onChange={(e) =>
                   setProduct({ ...product, model: e.target.value })
                 }
               />
 
-              <label>Serial Number</label>
+              <label htmlFor="product-serial">Serial number</label>
               <input
+                id="product-serial"
                 required
                 value={product.serial_number}
                 onChange={(e) =>
@@ -442,8 +596,9 @@ export default function App() {
                 }
               />
 
-              <label>Purchase Date</label>
+              <label htmlFor="product-purchase-date">Purchase date</label>
               <input
+                id="product-purchase-date"
                 type="date"
                 value={product.purchase_date}
                 onChange={(e) =>
@@ -451,8 +606,9 @@ export default function App() {
                 }
               />
 
-              <label>Warranty Period (months)</label>
+              <label htmlFor="product-warranty">Warranty period (months)</label>
               <input
+                id="product-warranty"
                 required
                 type="number"
                 min="1"
@@ -462,47 +618,53 @@ export default function App() {
                 }
               />
 
-              <button type="submit">Add Product</button>
+              <button className="primary-button form-submit" type="submit">Save product <span aria-hidden="true">→</span></button>
             </form>
           </section>
         )}
 
         {page === "claims" && (
-          <section>
-            <h2>Warranty Claims</h2>
+          <section className="page-section">
+            <div className="page-title-row">
+              <div><h1>{isAdmin ? "Claim reviews" : "My claims"}</h1><p>{isAdmin ? "Review claims and update their status." : "View the status of your warranty claims."}</p></div>
+            </div>
 
             {claims.length === 0 ? (
-              <p>No claims found.</p>
+              <div className="empty-state"><h2>No claims found</h2><p>{isAdmin ? "There are no customer claims to review." : "Submit a claim to see it here."}</p></div>
             ) : (
               <div className="list">
                 {claims.map((item) => (
                   <article className="item" key={item.id}>
-                    <h3>Claim #{item.id}</h3>
-                    <p><b>Customer:</b> {item.customer_name}</p>
-                    <p><b>Product:</b> {item.product_name}</p>
-                    <p><b>Serial Number:</b> {item.serial_number}</p>
-                    <p><b>Issue:</b> {item.issue}</p>
-                    <p><b>Status:</b> {item.status}</p>
-
-                    <label>Update Status</label>
-                    <select
-                      value={item.status}
-                      onChange={(e) =>
-                        handleUpdateStatus(item.id, e.target.value)
-                      }
-                    >
-                      <option value="Pending">Pending</option>
-                      <option value="Approved">Approved</option>
-                      <option value="Rejected">Rejected</option>
-                      <option value="Resolved">Resolved</option>
-                    </select>
-
-                    <button
-                      className="danger"
-                      onClick={() => handleDeleteClaim(item.id)}
-                    >
-                      Delete Claim
-                    </button>
+                    <div className="claim-heading">
+                      <div><span className="eyebrow">CLAIM #{item.id}</span><h3>{item.product_name}</h3></div>
+                      <span className={`status-badge status-${item.status?.toLowerCase()}`}>{item.status}</span>
+                    </div>
+                    <div className="claim-details">
+                      <p><b>Customer</b><span>{item.customer_name}</span></p>
+                      <p><b>Serial number</b><span>{item.serial_number}</span></p>
+                      <p className="claim-issue"><b>Issue</b><span>{item.issue}</span></p>
+                    </div>
+                    <div className="claim-actions">
+                      {isAdmin && (
+                        <label className="status-control">
+                          <span>Update status</span>
+                          <select
+                            aria-label={`Update status for claim ${item.id}`}
+                            value={item.status}
+                            onChange={(e) =>
+                              handleUpdateStatus(item.id, e.target.value)
+                            }
+                          >
+                            <option value="Pending">Pending</option>
+                            <option value="Approved">Approved</option>
+                            <option value="Rejected">Rejected</option>
+                          </select>
+                        </label>
+                      )}
+                      <button className="danger-button" onClick={() => handleDeleteClaim(item.id)}>
+                        Delete claim
+                      </button>
+                    </div>
                   </article>
                 ))}
               </div>
@@ -511,11 +673,14 @@ export default function App() {
         )}
 
         {page === "addClaim" && (
-          <section>
-            <h2>Submit Warranty Claim</h2>
+          <section className="page-section form-page">
+            <div className="page-title-row">
+              <div><h1>Submit a claim</h1><p>Enter your product information and describe the issue.</p></div>
+            </div>
             <form onSubmit={handleAddClaim}>
-              <label>Customer Name</label>
+              <label htmlFor="claim-customer">Customer name</label>
               <input
+                id="claim-customer"
                 required
                 value={claim.customer_name}
                 onChange={(e) =>
@@ -523,8 +688,9 @@ export default function App() {
                 }
               />
 
-              <label>Product Name</label>
+              <label htmlFor="claim-product">Product name</label>
               <input
+                id="claim-product"
                 required
                 value={claim.product_name}
                 onChange={(e) =>
@@ -532,8 +698,9 @@ export default function App() {
                 }
               />
 
-              <label>Serial Number</label>
+              <label htmlFor="claim-serial">Serial number</label>
               <input
+                id="claim-serial"
                 required
                 value={claim.serial_number}
                 onChange={(e) =>
@@ -541,8 +708,9 @@ export default function App() {
                 }
               />
 
-              <label>Issue Description</label>
+              <label htmlFor="claim-issue">Issue description</label>
               <textarea
+                id="claim-issue"
                 required
                 value={claim.issue}
                 onChange={(e) =>
@@ -550,13 +718,13 @@ export default function App() {
                 }
               />
 
-              <button type="submit">Submit Claim</button>
+              <button className="primary-button form-submit" type="submit">Submit claim <span aria-hidden="true">→</span></button>
             </form>
           </section>
         )}
-
-        <button className="logout" onClick={logout}>Logout</button>
-      </div>
+        </div>
+        <footer className="workspace-footer">Product Warranty Claim Processing Platform</footer>
+      </main>
     </div>
   );
 }
