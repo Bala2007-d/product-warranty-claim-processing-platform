@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String
+from sqlalchemy import Column, Integer, String, ForeignKey
 from app.database.base import Base
 
 
@@ -11,3 +11,5 @@ class Claim(Base):
     serial_number = Column(String(100))
     issue = Column(String(255))
     status = Column(String(50), default="Pending")
+
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=True)

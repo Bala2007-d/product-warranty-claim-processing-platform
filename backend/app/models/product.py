@@ -1,15 +1,19 @@
-from sqlalchemy import Column, Integer, String, Float
+
+from sqlalchemy import Column, Integer, String, Date, DateTime
+from sqlalchemy.sql import func
 from app.database.base import Base
 
 
 class Product(Base):
     __tablename__ = "products"
 
-    id = Column(Integer, primary_key=True, index=True)
+    product_id = Column(Integer, primary_key=True, index=True, autoincrement=True)
     product_name = Column(String(100), nullable=False)
     brand = Column(String(100), nullable=False)
-    model = Column(String(100), nullable=False)
-    serial_number = Column(String(100), unique=True, nullable=False)
-    purchase_date = Column(String(50), nullable=False)
-    warranty_period = Column(Integer, nullable=False)
-    customer_email = Column(String(100), nullable=False)
+    model = Column(String(100), nullable=True)
+    serial_number = Column(String(100), unique=True, nullable=True)
+    purchase_date = Column(Date, nullable=True)
+    warranty_period = Column(Integer, nullable=False, default=12)
+    customer_email = Column(String(255), nullable=True)
+    warranty_end_date = Column(Date, nullable=True)
+    created_at = Column(DateTime, server_default=func.current_timestamp())
